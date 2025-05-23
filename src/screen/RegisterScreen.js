@@ -5,6 +5,20 @@ import { Picker } from '@react-native-picker/picker'; // Importamos el Picker pa
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../utils/api';
 
+
+// Función de alerta multiplataforma
+const showAlert = (title, message, buttons = [{ text: 'OK' }]) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+    // Si hay un callback para el botón OK en web
+    if (buttons[0]?.onPress) {
+      buttons[0].onPress();
+    }
+  } else {
+    Alert.alert(title, message, buttons);
+  }
+};
+
 export default function RegisterScreen() {
   // Estados para campos de texto
   const [nombre, setNombre] = useState('');
@@ -46,83 +60,138 @@ export default function RegisterScreen() {
     }
   };
 
-  // Función para registrar usuario
+// Función para registrar usuario - Versión mejorada
 const registrarUsuario = async () => {
-  // Validación de campos obligatorios
-  if (!nombre || !apellido || !correo || !contrasena || !confirmarContrasena || !genero) {
-    Alert.alert('Error', 'Todos los campos marcados con * son obligatorios');
-    return;
-  }
+    // Validación de campos obligatorios
+    if (!nombre) {
+      showAlert('Error', 'Por favor ingresa tu nombre');
+      return;
+    }
+    if (!apellido) {
+      showAlert('Error', 'Por favor ingresa tu apellido');
+      return;
+    }
+    if (!correo) {
+      showAlert('Error', 'Por favor ingresa tu correo electrónico');
+      return;
+    } else if (!/^\S+@\S+\.\S+$/.test(correo)) {
+      showAlert('Error', 'Por favor ingresa un correo electrónico válido');
+      return;
+    }
+    if (!contrasena) {
+      showAlert('Error', 'Por favor ingresa una contraseña');
+      return;
+    } else if (contrasena.length < 6) {
+      showAlert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (!confirmarContrasena) {
+      showAlert('Error', 'Por favor confirma tu contraseña');
+      return;
+    }
+    if (contrasena !== confirmarContrasena) {
+      showAlert('Error', 'Las contraseñas no coinciden');
+      return;
+    }
+    if (!genero) {
+      showAlert('Error', 'Por favor selecciona tu género');
+      return;
+    }
+    if (edad && isNaN(edad)) {
+      showAlert('Error', 'La edad debe ser un número válido');
+      return;
+    }
 
-  // Validación de contraseñas
-  if (contrasena !== confirmarContrasena) {
-    Alert.alert('Error', 'Las contraseñas no coinciden');
-    return;
-  }
+    try {
+      // Mostrar indicador de carga
+      showAlert('Procesando', 'Registrando tu información...');
 
-  // Validación de edad
-  if (edad && isNaN(edad)) {
-    Alert.alert('Error', 'La edad debe ser un número válido');
-    return;
-  }
+      // Preparar datos para enviar
+      const usuario = {
+        nombre,
+        apellido,
+        correo,
+        contrasena,
+        genero,
+        intereses: interesesSeleccionados,
+        ...(edad && { edad: parseInt(edad) }),
+        ...(telefono && { telefono }),
+        ...(direccion && { direccion }),
+      };
 
-  try {
-    // Preparar datos para enviar
-    const usuario = {
-      nombre,
-      apellido,
-      correo,
-      contrasena,
-      genero,
-      intereses: interesesSeleccionados,
-      ...(edad && { edad: parseInt(edad) }),
-      ...(telefono && { telefono }),
-      ...(direccion && { direccion }),
-    };
-
-    const response = await api.post('/usuarios', usuario);
-    
-    if (response.data && response.data.success) {
-      Alert.alert('Éxito', response.data.message || 'Usuario registrado correctamente');
+      const response = await api.post('/usuarios', usuario);
       
-      // Resetear formulario
-      setNombre('');
-      setApellido('');
-      setCorreo('');
-      setContrasena('');
-      setConfirmarContrasena('');
-      setEdad('');
-      setTelefono('');
-      setDireccion('');
-      setGenero('');
-      setInteresesSeleccionados([]);
-    }
-    
-  } catch (error) {
-    console.error('Error completo:', error.response?.data || error.message);
-    
-    // Manejo específico para correo duplicado
-    if (error.response?.status === 409) {
-      Alert.alert(
-        'Correo ya registrado', 
-        error.response.data.message || 'Este correo electrónico ya está en uso. ¿Quieres iniciar sesión?'
+      if (response.data && response.data.success) {
+        showAlert(
+          '¡Registro Exitoso!', 
+          `Hola ${response.data.usuario.nombre}, tu registro se completó correctamente.`,
+          [
+            { 
+              text: 'OK', 
+              onPress: () => {
+                // Resetear formulario
+                setNombre('');
+                setApellido('');
+                setCorreo('');
+                setContrasena('');
+                setConfirmarContrasena('');
+                setEdad('');
+                setTelefono('');
+                setDireccion('');
+                setGenero('');
+                setInteresesSeleccionados([]);
+              }
+            }
+          ]
+        );
+      } else {
+        showAlert(
+          'Registro incompleto', 
+          'Recibimos tu información pero hubo un problema al finalizar. Por favor contacta al soporte.'
+        );
+      }
+      
+    } catch (error) {
+      console.error('Error detallado:', error.response?.data || error.message);
+      
+      // Manejo específico para correo duplicado
+      if (error.response?.status === 409) {
+        showAlert(
+          'Correo ya registrado', 
+          'El correo electrónico ya está en uso. ¿Quieres recuperar tu contraseña?',
+          [
+            { text: 'Recuperar contraseña', onPress: () => navigation.navigate('Recovery') },
+            { text: 'Intentar con otro correo' }
+          ]
+        );
+        return;
+      }
+      
+      // Manejo de errores de validación del servidor
+      if (error.response?.status === 400) {
+        showAlert(
+          'Datos incorrectos', 
+          error.response.data.message || 'Por favor verifica la información ingresada'
+        );
+        return;
+      }
+      
+      // Manejo de errores de conexión
+      if (error.message === 'Network Error') {
+        showAlert(
+          'Error de conexión', 
+          'No se pudo conectar al servidor. Verifica tu conexión a internet.'
+        );
+        return;
+      }
+      
+      // Error genérico
+      showAlert(
+        'Error inesperado', 
+        'Ocurrió un problema al registrar. Por favor intenta nuevamente más tarde.'
       );
-      return;
     }
-    
-    // Manejo de errores de validación
-    if (error.response?.status === 400) {
-      Alert.alert('Error de validación', error.response.data.message);
-      return;
-    }
-    
-    // Error genérico
-    Alert.alert(
-      'Error', 
-      error.response?.data?.message || 'Ocurrió un error al registrar. Por favor intenta nuevamente.'
-    );
-  }
-};
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
