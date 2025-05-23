@@ -15,7 +15,7 @@ Esta app sirve como proyecto base para comenzar a desarrollar aplicaciones móvi
 ## 📁 Estructura del proyecto
 
 ```
-.
+
 hello-world/
 ├── .expo/
 ├── .gitignore
@@ -47,7 +47,7 @@ Sigue estos pasos para clonar y ejecutar correctamente esta aplicación React Na
 
 ### 1. Clonar el repositorio
 
-```bash
+```
 git clone git@github.com:WilldiazRaM/react-native-expo-demo.git
 cd react-native-expo-demo
 ```
@@ -60,7 +60,7 @@ Asegúrate de tener **Node.js** instalado. Puedes descargarlo desde:
 
 Para verificar que está instalado correctamente:
 
-```bash
+```
 node -v
 npm -v
 ```
@@ -69,13 +69,13 @@ npm -v
 
 Expo CLI es una herramienta que facilita el desarrollo con React Native.
 
-```bash
+```
 npm install -g expo-cli
 ```
 
 Verifica que se instaló correctamente:
 
-```bash
+```
 expo --version
 ```
 
@@ -83,7 +83,7 @@ expo --version
 
 Con el repositorio ya clonado, instala las dependencias del proyecto con:
 
-```bash
+```
 npm install
 ```
 
@@ -93,7 +93,7 @@ Esto descargará todas las dependencias indicadas en el `package.json`.
 
 Una vez instaladas las dependencias, puedes iniciar la app con:
 
-```bash
+```
 npx expo start
 ```
 
