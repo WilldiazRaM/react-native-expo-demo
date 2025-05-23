@@ -94,7 +94,7 @@ Esto descargará todas las dependencias indicadas en el `package.json`.
 Una vez instaladas las dependencias, puedes iniciar la app con:
 
 ```bash
-npm start
+npx expo start
 ```
 
 Esto abrirá el **Metro Bundler** en tu navegador.
