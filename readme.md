@@ -105,7 +105,12 @@ Tienes varias opciones para probar la aplicación:
 
 - 📱 **Expo Go (Android/iOS):** Escanea el código QR desde la app [Expo Go](https://expo.dev/client).
 - 🤖 **Emulador Android:** Si tienes un emulador configurado, puedes correr:
+- 💻 **Visualización Web:** También puedes ver la app directamente desde el navegador web, accediendo a:
 
+```
+http://localhost:8081
+
+```
 
 ---
 
