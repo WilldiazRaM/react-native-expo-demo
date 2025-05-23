@@ -41,23 +41,102 @@ hello-world/
 - Expo CLI: `npm install -g expo-cli`
 - Git instalado
 
-## 🚀 Instalación y ejecución
+## 🧰 Configuración del entorno y ejecución
 
-1. **Clona el repositorio:**
-   ```bash
-   git clone git@github.com:WilldiazRaM/react-native-expo-demo.git
-   cd react-native-expo-demo
-   ```
+Sigue estos pasos para clonar y ejecutar correctamente esta aplicación React Native con Expo:
 
-2. **Instala las dependencias:**
-   ```bash
-   npm install
-   ```
+### 1. Clonar el repositorio
 
-3. **Inicia el proyecto:**
-   ```bash
-   expo start
-   ```
+```bash
+git clone git@github.com:WilldiazRaM/react-native-expo-demo.git
+cd react-native-expo-demo
+```
+
+### 2. Instalar Node.js
+
+Asegúrate de tener **Node.js** instalado. Puedes descargarlo desde:
+
+👉 https://nodejs.org
+
+Para verificar que está instalado correctamente:
+
+```bash
+node -v
+npm -v
+```
+
+### 3. Instalar Expo CLI
+
+Expo CLI es una herramienta que facilita el desarrollo con React Native.
+
+```bash
+npm install -g expo-cli
+```
+
+Verifica que se instaló correctamente:
+
+```bash
+expo --version
+```
+
+### 4. Instalar dependencias del proyecto
+
+Con el repositorio ya clonado, instala las dependencias del proyecto con:
+
+```bash
+npm install
+```
+
+Esto descargará todas las dependencias indicadas en el `package.json`.
+
+### 5. Iniciar la app
+
+Una vez instaladas las dependencias, puedes iniciar la app con:
+
+```bash
+npm start
+```
+
+Esto abrirá el **Metro Bundler** en tu navegador.
+
+### 6. Visualizar la app
+
+Tienes varias opciones para probar la aplicación:
+
+- 📱 **Expo Go (Android/iOS):** Escanea el código QR desde la app [Expo Go](https://expo.dev/client).
+- 🤖 **Emulador Android:** Si tienes un emulador configurado, puedes correr:
+
+  ```bash
+  npm run android
+  ```
+
+- 🍏 **Simulador iOS (solo macOS):**
+
+  ```bash
+  npm run ios
+  ```
+
+- 🌐 **Navegador Web:**
+
+  ```bash
+  npm run web
+  ```
+
+---
+
+## 🔍 Dependencias principales
+
+Estas son algunas de las librerías utilizadas:
+
+- `axios`: Peticiones HTTP
+- `react-native-paper`: Componentes UI modernos
+- `@react-native-picker/picker`: Selectores nativos
+- `react-native-vector-icons`: Iconos escalables
+- `expo-status-bar`: Manejo de la barra de estado
+
+---
+
+✅ ¡Con esto ya deberías tener la app corriendo en tu entorno local!
 
 4. **Escanea el QR** con la app **Expo Go** en tu celular para ver la app en acción.
 
