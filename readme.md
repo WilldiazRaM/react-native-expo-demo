@@ -106,21 +106,6 @@ Tienes varias opciones para probar la aplicación:
 - 📱 **Expo Go (Android/iOS):** Escanea el código QR desde la app [Expo Go](https://expo.dev/client).
 - 🤖 **Emulador Android:** Si tienes un emulador configurado, puedes correr:
 
-  ```bash
-  npm run android
-  ```
-
-- 🍏 **Simulador iOS (solo macOS):**
-
-  ```bash
-  npm run ios
-  ```
-
-- 🌐 **Navegador Web:**
-
-  ```bash
-  npm run web
-  ```
 
 ---
 
