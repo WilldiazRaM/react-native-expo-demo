@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Platform, ScrollView, TouchableOpacity } from 'react-native';
-import { RadioButton, Checkbox } from 'react-native-paper';
+import { RadioButton } from 'react-native-paper'; // Eliminamos el Checkbox ya que no lo usaremos más
+import { Picker } from '@react-native-picker/picker'; // Importamos el Picker para el dropdown
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../utils/api';
 
@@ -15,88 +16,113 @@ export default function RegisterScreen() {
   const [telefono, setTelefono] = useState('');
   const [direccion, setDireccion] = useState('');
 
-  // Estados para RadioButtons (Género)
+  // Estado para RadioButtons (Género)
   const [genero, setGenero] = useState(''); // 'masculino', 'femenino', 'otro'
   
-  // Estados para Checkboxes (Intereses)
-  const [intereses, setIntereses] = useState({
-    deportes: false,
-    musica: false,
-    lectura: false,
-    tecnologia: false,
-    arte: false
-  });
+  // Estados para Intereses (ahora con dropdown)
+  const [interesesSeleccionados, setInteresesSeleccionados] = useState([]); // Array para guardar los intereses seleccionados
+  const [mostrarDropdown, setMostrarDropdown] = useState(false); // Controla la visibilidad del dropdown
+  
+  // Lista de posibles intereses
+  const listaIntereses = [
+    { id: 'deportes', nombre: 'Deportes' },
+    { id: 'musica', nombre: 'Música' },
+    { id: 'lectura', nombre: 'Lectura' },
+    { id: 'tecnologia', nombre: 'Tecnología' },
+    { id: 'arte', nombre: 'Arte' }
+  ];
 
-  // Función para manejar cambios en checkboxes
-  const toggleInteres = (interes) => {
-    setIntereses({
-      ...interes,
-      [interes]: !interes[interes]
-    });
+  // Función para manejar selección de intereses en el dropdown
+  const seleccionarInteres = (interesId) => {
+    // Verificamos si el interés ya está seleccionado
+    const existe = interesesSeleccionados.includes(interesId);
+    
+    if (existe) {
+      // Si ya está, lo quitamos del array
+      setInteresesSeleccionados(interesesSeleccionados.filter(id => id !== interesId));
+    } else {
+      // Si no está, lo agregamos al array
+      setInteresesSeleccionados([...interesesSeleccionados, interesId]);
+    }
   };
 
   // Función para registrar usuario
-  const registrarUsuario = async () => {
-    // Validación de campos obligatorios
-    if (!nombre || !apellido || !correo || !contrasena || !confirmarContrasena || !genero) {
-      Alert.alert('Error', 'Los campos marcados con * son obligatorios');
-      return;
-    }
+const registrarUsuario = async () => {
+  // Validación de campos obligatorios
+  if (!nombre || !apellido || !correo || !contrasena || !confirmarContrasena || !genero) {
+    Alert.alert('Error', 'Todos los campos marcados con * son obligatorios');
+    return;
+  }
 
-    if (contrasena !== confirmarContrasena) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
-      return;
-    }
+  // Validación de contraseñas
+  if (contrasena !== confirmarContrasena) {
+    Alert.alert('Error', 'Las contraseñas no coinciden');
+    return;
+  }
 
-    if (edad && isNaN(edad)) {
-      Alert.alert('Error', 'La edad debe ser un número');
-      return;
-    }
+  // Validación de edad
+  if (edad && isNaN(edad)) {
+    Alert.alert('Error', 'La edad debe ser un número válido');
+    return;
+  }
 
-    try {
-      // Preparar datos para enviar
-      const usuario = {
-        nombre,
-        apellido,
-        correo,
-        contrasena,
-        genero,
-        intereses: Object.keys(intereses).filter(key => intereses[key]), // Solo enviar los seleccionados
-        ...(edad && { edad: parseInt(edad) }),
-        ...(telefono && { telefono }),
-        ...(direccion && { direccion }),
-      };
+  try {
+    // Preparar datos para enviar
+    const usuario = {
+      nombre,
+      apellido,
+      correo,
+      contrasena,
+      genero,
+      intereses: interesesSeleccionados,
+      ...(edad && { edad: parseInt(edad) }),
+      ...(telefono && { telefono }),
+      ...(direccion && { direccion }),
+    };
 
-      const response = await api.post('/usuarios', usuario);
+    const response = await api.post('/usuarios', usuario);
+    
+    if (response.data && response.data.success) {
+      Alert.alert('Éxito', response.data.message || 'Usuario registrado correctamente');
       
-      if (response.data && response.data.nombre) {
-        const mensajeExito = `✅ Usuario ${response.data.nombre} registrado con éxito!`;
-        
-        Platform.OS === 'web' ? alert(mensajeExito) : Alert.alert('Éxito', mensajeExito);
-        
-        // Resetear formulario
-        setNombre('');
-        setApellido('');
-        setCorreo('');
-        setContrasena('');
-        setConfirmarContrasena('');
-        setEdad('');
-        setTelefono('');
-        setDireccion('');
-        setGenero('');
-        setIntereses({
-          deportes: false,
-          musica: false,
-          lectura: false,
-          tecnologia: false,
-          arte: false
-        });
-      } 
-    } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', error.response?.data?.message || 'Error en el registro');
+      // Resetear formulario
+      setNombre('');
+      setApellido('');
+      setCorreo('');
+      setContrasena('');
+      setConfirmarContrasena('');
+      setEdad('');
+      setTelefono('');
+      setDireccion('');
+      setGenero('');
+      setInteresesSeleccionados([]);
     }
-  };
+    
+  } catch (error) {
+    console.error('Error completo:', error.response?.data || error.message);
+    
+    // Manejo específico para correo duplicado
+    if (error.response?.status === 409) {
+      Alert.alert(
+        'Correo ya registrado', 
+        error.response.data.message || 'Este correo electrónico ya está en uso. ¿Quieres iniciar sesión?'
+      );
+      return;
+    }
+    
+    // Manejo de errores de validación
+    if (error.response?.status === 400) {
+      Alert.alert('Error de validación', error.response.data.message);
+      return;
+    }
+    
+    // Error genérico
+    Alert.alert(
+      'Error', 
+      error.response?.data?.message || 'Ocurrió un error al registrar. Por favor intenta nuevamente.'
+    );
+  }
+};
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -218,27 +244,66 @@ export default function RegisterScreen() {
           secureTextEntry
         />
 
-        {/* Sección de intereses (Checkboxes) */}
+        {/* Sección de intereses (ahora con Dropdown) */}
         <Text style={styles.sectionTitle}>Intereses</Text>
         
-        <View style={styles.checkboxContainer}>
-          {Object.keys(intereses).map((item) => (
-            <TouchableOpacity 
-              key={item} 
-              style={styles.checkboxOption}
-              onPress={() => toggleInteres(item)}
+        <TouchableOpacity 
+          style={styles.dropdownButton}
+          onPress={() => setMostrarDropdown(!mostrarDropdown)}
+        >
+          <Text style={styles.dropdownButtonText}>
+            {interesesSeleccionados.length > 0 
+              ? `Seleccionados: ${interesesSeleccionados.length}`
+              : "Selecciona tus intereses"}
+          </Text>
+          <Icon 
+            name={mostrarDropdown ? "arrow-drop-up" : "arrow-drop-down"} 
+            size={24} 
+            color="#555" 
+          />
+        </TouchableOpacity>
+        
+        {mostrarDropdown && (
+          <View style={styles.dropdownContainer}>
+            <Picker
+              selectedValue={null} // No mostramos selección individual
+              onValueChange={seleccionarInteres}
+              mode="dropdown"
+              style={styles.picker}
+              dropdownIconColor="#007bff"
             >
-              <Checkbox
-                status={intereses[item] ? 'checked' : 'unchecked'}
-                onPress={() => toggleInteres(item)}
-                color="#007bff"
-              />
-              <Text style={styles.checkboxLabel}>
-                {item.charAt(0).toUpperCase() + item.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              {listaIntereses.map((interes) => (
+                <Picker.Item 
+                  key={interes.id}
+                  label={interes.nombre}
+                  value={interes.id}
+                  // Mostramos un checkmark si el interés está seleccionado
+                  style={interesesSeleccionados.includes(interes.id) 
+                    ? styles.itemSeleccionado 
+                    : styles.itemNoSeleccionado
+                  }
+                />
+              ))}
+            </Picker>
+          </View>
+        )}
+        
+        {/* Mostrar intereses seleccionados */}
+        {interesesSeleccionados.length > 0 && (
+          <View style={styles.interesesSeleccionadosContainer}>
+            <Text style={styles.interesesTitulo}>Intereses seleccionados:</Text>
+            <View style={styles.interesesLista}>
+              {interesesSeleccionados.map(id => {
+                const interes = listaIntereses.find(i => i.id === id);
+                return (
+                  <View key={id} style={styles.interesTag}>
+                    <Text style={styles.interesTagText}>{interes.nombre}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
 
         {/* Botón de registro */}
         <View style={styles.buttonContainer}>
@@ -310,18 +375,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 20,
   },
-  checkboxContainer: {
-    marginBottom: 20,
-  },
-  checkboxOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  checkboxLabel: {
-    marginLeft: 8,
-    fontSize: 16,
-  },
   buttonContainer: {
     marginTop: 20,
     marginBottom: 10,
@@ -333,5 +386,64 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: 10,
+  },
+  // Estilos para el dropdown
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+    marginBottom: 15,
+  },
+  dropdownButtonText: {
+    fontSize: 16,
+    color: '#555',
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 15,
+    backgroundColor: '#f9f9f9',
+  },
+  picker: {
+    width: '100%',
+  },
+  itemSeleccionado: {
+    backgroundColor: '#e6f2ff', // Fondo azul claro para items seleccionados
+    color: '#007bff',
+    fontWeight: 'bold',
+  },
+  itemNoSeleccionado: {
+    backgroundColor: '#fff',
+  },
+  // Estilos para mostrar los intereses seleccionados
+  interesesSeleccionadosContainer: {
+    marginBottom: 15,
+  },
+  interesesTitulo: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5,
+  },
+  interesesLista: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  interesTag: {
+    backgroundColor: '#e6f2ff',
+    borderRadius: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  interesTagText: {
+    color: '#007bff',
+    fontSize: 14,
   },
 });
