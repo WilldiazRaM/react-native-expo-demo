@@ -60,7 +60,7 @@ export default function RegisterScreen() {
     }
   };
 
-// Función para registrar usuario - Versión mejorada
+// Función para registrar usuario 
 const registrarUsuario = async () => {
     // Validación de campos obligatorios
     if (!nombre) {
